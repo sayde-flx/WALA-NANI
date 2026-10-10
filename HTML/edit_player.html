@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Edit player{% endblock %}
+{% block content %}
+{% if is_admin or is_coach %}{% include '_manage_nav.html' %}{% endif %}
+{% if not (is_admin or is_coach) %}
+<section class="page-head"><span class="eyebrow">Player profile</span><h1>My player profile</h1><p class="muted">Review your submission and update your details below.</p></section>
+<section class="card panel">
+  <div class="panel-title"><div><span class="eyebrow">Status</span><h2>{{ player.first_name }} {{ player.surname }}</h2></div><span class="status ok">Submitted</span></div>
+  <dl class="settings-list">
+    <div><dt>Sport</dt><dd>{{ info.name }}</dd></div>
+    <div><dt>Position</dt><dd>{{ player.position }}</dd></div>
+    <div><dt>Height</dt><dd>{{ (player.height ~ ' cm') if player.height else '—' }}</dd></div>
+    <div><dt>Course &amp; year</dt><dd>{{ player.course }} &middot; {{ player.year }}</dd></div>
+    <div><dt>Submission deadline</dt><dd>{{ system_deadline.strftime('%B %d, %Y') }}</dd></div>
+  </dl>
+  <div class="settings-actions"><a class="btn secondary" href="{{ url_for('sport_roster', sport=player.sport) }}">View my team</a><a class="btn secondary" href="{{ url_for('new_player_start') }}">My sports / join another</a><a class="btn secondary" href="{{ url_for('account_details') }}">Edit my details</a></div>
+</section>
+{% else %}
+<section class="page-head"><span class="eyebrow">{{ info.name }}</span><h1>Edit player</h1></section>
+{% endif %}
+<section class="card panel"><form method="post" class="form"><div class="form-grid">{% if is_admin or is_coach %}{% with form=player %}{% include '_personal_fields.html' %}{% endwith %}{% endif %}{% if is_admin %}<label>Sport<select name="sport" id="sport-select" required>{% for key, item in sports.items() %}<option value="{{ key }}" {% if player.sport == key %}selected{% endif %}>{{ item.name }}</option>{% endfor %}</select></label>{% elif is_coach %}<label>Sport<input value="{{ info.name }}" disabled><small class="muted">Coaches can change position only, not sport.</small></label>{% endif %}<label>Position<select name="position" id="position-select" required>{% for p in info.positions %}<option value="{{ p }}" {% if player.position == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></label><label>Height (cm)<input name="height" type="number" min="100" max="250" step="1" inputmode="numeric" placeholder="e.g. 170" value="{{ player.height or '' }}" required></label></div><div class="actions"><button class="btn primary" type="submit">Save changes</button><a class="btn secondary" href="{{ url_for('admin_players') if (is_admin or is_coach) else url_for('student_home') }}">Back</a></div></form></section>
+{% endblock %}
+{% block scripts %}
+<script id="sports-data" type="application/json">{{ sports|tojson }}</script>
+<script>
+  (function () {
+    var data = JSON.parse(document.getElementById('sports-data').textContent);
+    var sport = document.getElementById('sport-select');
+    var position = document.getElementById('position-select');
+    if (!sport || !position) return;
+    // When the sport changes, swap the position list to that sport's positions.
+    sport.addEventListener('change', function () {
+      var list = (data[sport.value] || {}).positions || [];
+      position.innerHTML = '<option value="">Select position</option>' + list.map(function (p) {
+        return '<option value="' + p + '">' + p + '</option>';
+      }).join('');
+    });
+  })();
+</script>
+{% endblock %}

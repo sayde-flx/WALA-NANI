@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="card welcome welcome-only">
+  <h1>Welcome {{ current_user.role|capitalize if current_user.role != 'student' else 'Player' }}: {{ current_user.username }}</h1>
+</section>
+{% endblock %}

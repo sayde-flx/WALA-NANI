@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Player profile{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">Player registration &middot; {{ mine|length }} of {{ sports|length }} sports registered</span>
+  <h1>{{ 'Your sports' if mine else 'Choose your sport' }}</h1>
+  <p>You can register in more than one sport. Pick a new sport to join it, or open a registered one to edit your details. Deadline: {{ system_deadline.strftime('%B %d, %Y') }}.</p>
+</section>
+<div class="sports-grid">
+{% for key, info in sports.items() %}
+  {% set reg = mine.get(key) %}
+  <a class="card sport-card" href="{{ url_for('edit_player', player_id=reg.id) if reg else url_for('new_player', sport=key) }}">
+    <span class="sport-number">{{ '%02d'|format(loop.index) }}</span>
+    <span>{{ info.name }}</span>
+    <small class="sport-choice-meta">{{ info.positions|join(' · ') }}</small>
+    {% if reg %}<span class="status ok">Registered &middot; {{ reg.position }}</span><b>Edit &rarr;</b>{% else %}<b>Join &rarr;</b>{% endif %}
+  </a>
+{% endfor %}
+</div>
+{% endblock %}

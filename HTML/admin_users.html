@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+{% include '_manage_nav.html' %}
+<section class="page-head admin-page-head"><span class="eyebrow">USER MANAGEMENT</span><h1>Accounts &amp; Roles</h1><p>Manage CKCM accounts and permissions.</p></section>
+
+<section class="card panel">
+  <div class="panel-title"><div><span class="eyebrow">COACH APPLICATIONS</span><h2>Awaiting approval</h2></div><span class="panel-chip">{{ system.coach_applications|length }} pending</span></div>
+  {% if system.coach_applications %}
+  <div class="table-wrap"><table><thead><tr><th>Name</th><th>Username</th><th>Age</th><th>Gender</th><th>Applied</th><th>Commands</th></tr></thead><tbody>
+  {% for a in system.coach_applications %}
+  <tr>
+    <td><strong>{{ a.full_name }}</strong></td><td>{{ a.username }}</td><td>{{ a.age }}</td><td>{{ a.gender }}</td><td>{{ a.submitted.strftime('%b %d, %Y') }}</td>
+    <td>
+      <form class="inline" method="post"><input type="hidden" name="action" value="approve_coach"><input type="hidden" name="application_id" value="{{ a.id }}"><button class="table-link button-link" type="submit">Approve</button></form>
+      <form class="inline" method="post" data-confirm="Reject this coach application?"><input type="hidden" name="action" value="reject_coach"><input type="hidden" name="application_id" value="{{ a.id }}"><button class="table-danger" type="submit">Reject</button></form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+  {% else %}<p class="muted">No coach applications are waiting.</p>{% endif %}
+</section>
+
+<section class="card panel admin-form-panel">
+  <div class="panel-title"><div><span class="eyebrow">ADD ACCOUNT</span><h2>New user</h2></div></div>
+  <form class="form-grid" method="post">
+    <input type="hidden" name="action" value="add">
+    <label>Username<input name="username" value="{{ form_values.username }}" autocomplete="off" required></label>
+    <label>Password<input name="password" type="password" minlength="6" autocomplete="new-password" required></label>
+    <label>Confirm password<input name="confirm_password" type="password" minlength="6" autocomplete="new-password" required></label>
+    <label>Role<select name="role"><option value="student" {{ 'selected' if form_values.role not in ['coach','admin'] else '' }}>Student</option><option value="coach" {{ 'selected' if form_values.role == 'coach' else '' }}>Coach</option><option value="admin" {{ 'selected' if form_values.role == 'admin' else '' }}>Admin</option></select></label>
+    <div class="form-submit"><button class="btn primary" type="submit">Add user</button></div>
+  </form>
+  <p class="form-note">Usernames beginning with <b>admin_</b> are automatically treated as admin accounts.</p>
+</section>
+
+<section class="card panel">
+  <div class="panel-title"><div><span class="eyebrow">ACCOUNT DIRECTORY</span><h2>Registered users</h2></div><span class="panel-chip">{{ users|length }} total</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Player profile</th><th>Commands</th></tr></thead><tbody>
+  {% for user in users %}
+  <tr>
+    <td><strong>{{ user.username }}</strong></td>
+    {% set urole = 'admin' if user.role == 'admin' or user.username.lower().startswith('admin_') else user.role %}
+    <td><span class="role-badge {{ urole }}">{{ urole|capitalize }}</span></td>
+    <td>{% set n = system.players_for_owner(user.id)|length %}{{ n ~ (' sport' if n == 1 else ' sports') if n else 'No profile' }}</td>
+    <td>
+      {% if user.id != current_user.id %}
+      <form class="inline admin-inline-form" method="post"><input type="hidden" name="action" value="role"><input type="hidden" name="user_id" value="{{ user.id }}"><select name="role" aria-label="Role for {{ user.username }}"><option value="student" {{ 'selected' if urole == 'student' else '' }}>Student</option><option value="coach" {{ 'selected' if urole == 'coach' else '' }}>Coach</option><option value="admin" {{ 'selected' if urole == 'admin' else '' }}>Admin</option></select><button class="table-link button-link" type="submit">Save role</button></form>
+      <form class="inline" method="post" data-confirm="Remove this user account and their player profile?"><input type="hidden" name="action" value="delete"><input type="hidden" name="user_id" value="{{ user.id }}"><button class="table-danger" type="submit">Remove</button></form>
+      {% else %}<span class="muted-label">Current account</span>{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

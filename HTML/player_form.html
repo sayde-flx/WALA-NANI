@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Player profile{% endblock %}
+{% block content %}
+{% set pr = current_user.profile %}
+<section class="page-head"><a class="back-link" href="{{ url_for('new_player_start') }}">&larr; My sports</a><span class="eyebrow">Player profile &middot; Step 2 of 2 &middot; {{ info.name }}</span><h1>Position &amp; height</h1><p>Registering as <strong>{{ pr.first_name }} {{ pr.surname }}</strong> &middot; {{ pr.course }} &middot; {{ pr.year }}. <a class="table-link" href="{{ url_for('account_details', next=request.path) }}">Edit my details</a></p></section>
+<section class="card panel"><form method="post" class="form"><div class="form-grid"><label>Position<select name="position" required><option value="">Select</option>{% for p in info.positions %}<option value="{{ p }}" {% if request.form.position == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></label><label>Height (cm)<input name="height" type="number" min="100" max="250" step="1" inputmode="numeric" placeholder="e.g. 170" value="{{ request.form.height or '' }}" required></label></div><div class="actions"><button class="btn primary" type="submit">Submit</button><a class="btn secondary" href="{{ url_for('student_home') }}">Back</a></div></form></section>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="card welcome welcome-only">
+  <h1>Welcome Admin: {{ current_user.username }}</h1>
+</section>
+{% endblock %}
